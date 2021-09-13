@@ -74,6 +74,18 @@ class SchemaDocument extends XmlNode
             if (strpos($referenceUrl, '//') === false) {
                 $referenceUrl = dirname($xsdUrl).'/'.$referenceUrl;
             }
+            
+            // remove ../ from urls
+            if (strpos($referenceUrl, '../') !== false) {
+
+                $baseUrlArray = explode('/', str_replace(['http://', 'https://', '../'], '', dirname($xsdUrl)));
+
+                $baseUrlArray = array_slice($baseUrlArray, 0, -1 * substr_count($referenceUrl, '../'));
+
+                $cleanUrl = parse_url($referenceUrl)['scheme'] . '://' . str_replace('../', '', implode('/', $baseUrlArray) . '/' . $reference->value);
+
+                $referenceUrl = $cleanUrl;
+            }
 
             if (!in_array($referenceUrl, self::$loadedUrls)) {
                 $this->referereces[] = new SchemaDocument($config, $referenceUrl);
